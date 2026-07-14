@@ -10,7 +10,9 @@ from handlers.commands import (
     watchlist_command, correlate_command, matrix_command,
     ai_command, picks_command,
     prob_command, probmatrix_command,
-    variance_command
+    variance_command,
+    balance_command, buy_command, sell_command,
+    positions_command, history_command, reset_command
 )
 from services.news_monitor import monitor_breaking_news
 from services.volume_monitor import monitor_volumes
@@ -49,6 +51,12 @@ def main():
     app.add_handler(CommandHandler("prob", prob_command))
     app.add_handler(CommandHandler("probmatrix", probmatrix_command))
     app.add_handler(CommandHandler("variance", variance_command))
+    app.add_handler(CommandHandler("balance", balance_command))
+    app.add_handler(CommandHandler("buy", buy_command))
+    app.add_handler(CommandHandler("sell", sell_command))
+    app.add_handler(CommandHandler("positions", positions_command))
+    app.add_handler(CommandHandler("history", history_command))
+    app.add_handler(CommandHandler("reset", reset_command))
 
     app.run_polling()
 

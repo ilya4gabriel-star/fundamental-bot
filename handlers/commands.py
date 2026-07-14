@@ -412,3 +412,74 @@ async def probmatrix_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     message = get_full_probability_matrix(ticker, move_pct)
     await update.message.reply_text(message, parse_mode="Markdown")
+
+
+from services.paper_trading import buy, sell, get_balance, get_positions, get_history, reset_account
+
+
+async def balance_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    chat_id = update.effective_chat.id
+    await update.message.reply_text(get_balance(chat_id), parse_mode="Markdown")
+
+
+async def buy_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if len(context.args) < 2:
+        await update.message.reply_text(
+            "⚠️ Usage: `/buy <ticker> <amount>`\n\n"
+            "Examples:\n"
+            "`/buy BTC 100` — buy $100 of Bitcoin\n"
+            "`/buy AAPL 500` — buy $500 of Apple",
+            parse_mode="Markdown"
+        )
+        return
+
+    ticker = context.args[0].upper()
+    try:
+        amount = float(context.args[1])
+    except ValueError:
+        await update.message.reply_text("⚠️ Amount must be a number.", parse_mode="Markdown")
+        return
+
+    chat_id = update.effective_chat.id
+    await update.message.reply_text(f"⏳ Executing BUY order for *{ticker}*...", parse_mode="Markdown")
+    message = buy(chat_id, ticker, amount)
+    await update.message.reply_text(message, parse_mode="Markdown")
+
+
+async def sell_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if len(context.args) < 2:
+        await update.message.reply_text(
+            "⚠️ Usage: `/sell <ticker> <amount>`\n\n"
+            "Examples:\n"
+            "`/sell BTC 100` — sell $100 worth of Bitcoin\n"
+            "`/sell AAPL 200` — sell $200 worth of Apple",
+            parse_mode="Markdown"
+        )
+        return
+
+    ticker = context.args[0].upper()
+    try:
+        amount = float(context.args[1])
+    except ValueError:
+        await update.message.reply_text("⚠️ Amount must be a number.", parse_mode="Markdown")
+        return
+
+    chat_id = update.effective_chat.id
+    await update.message.reply_text(f"⏳ Executing SELL order for *{ticker}*...", parse_mode="Markdown")
+    message = sell(chat_id, ticker, amount)
+    await update.message.reply_text(message, parse_mode="Markdown")
+
+
+async def positions_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    chat_id = update.effective_chat.id
+    await update.message.reply_text(get_positions(chat_id), parse_mode="Markdown")
+
+
+async def history_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    chat_id = update.effective_chat.id
+    await update.message.reply_text(get_history(chat_id), parse_mode="Markdown")
+
+
+async def reset_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    chat_id = update.effective_chat.id
+    await update.message.reply_text(reset_account(chat_id), parse_mode="Markdown")
