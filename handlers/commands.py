@@ -311,3 +311,104 @@ async def picks_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         message,
         parse_mode="Markdown"
     )
+
+
+from services.variance import calculate_variance, compare_variance
+
+
+async def variance_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not context.args:
+        await update.message.reply_text(
+            "⚠️ Please provide a ticker.\n\n"
+            "*Usage:*\n"
+            "`/variance BTC` — 30-day variance\n"
+            "`/variance AAPL 90d` — 90-day variance\n"
+            "`/variance BTC ETH SOL` — compare volatility",
+            parse_mode="Markdown"
+        )
+        return
+
+    # Multiple tickers = comparison mode
+    if len(context.args) >= 2 and context.args[1].upper() in [
+        "BTC", "ETH", "XRP", "SOL", "BNB", "AAPL", "TSLA",
+        "NVDA", "MSFT", "AMZN", "META", "GOOGL", "SPY", "QQQ", "GLD"
+    ]:
+        tickers = [a.upper() for a in context.args]
+        await update.message.reply_text(
+            f"📐 Comparing volatility for *{', '.join(tickers)}*...",
+            parse_mode="Markdown"
+        )
+        message = compare_variance(tickers)
+        await update.message.reply_text(message, parse_mode="Markdown")
+        return
+
+    ticker = context.args[0].upper()
+    period = context.args[1] if len(context.args) > 1 else "30d"
+
+    await update.message.reply_text(
+        f"📐 Calculating variance for *{ticker}* ({period})...",
+        parse_mode="Markdown"
+    )
+    message = calculate_variance(ticker, period)
+    await update.message.reply_text(message, parse_mode="Markdown")
+
+
+from services.probability import calculate_probability, format_probability, get_full_probability_matrix
+
+
+async def prob_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not context.args or len(context.args) < 2:
+        await update.message.reply_text(
+            "⚠️ *Usage:*\n"
+            "`/prob <A> <B>` — basic probability\n"
+            "`/prob <A> <B> <move%>` — custom move size\n"
+            "`/prob <A> <B> <move%> <up/down>` — direction\n\n"
+            "*Examples:*\n"
+            "`/prob BTC ETH`\n"
+            "`/prob BTC SOL 5 up`\n"
+            "`/prob NVDA TSLA 4 down`",
+            parse_mode="Markdown"
+        )
+        return
+
+    ticker_a = context.args[0].upper()
+    ticker_b = context.args[1].upper()
+    move_pct = float(context.args[2]) if len(context.args) > 2 else 3.0
+    direction = context.args[3].lower() if len(context.args) > 3 else "up"
+    lag_days = int(context.args[4]) if len(context.args) > 4 else 1
+
+    if direction not in ["up", "down"]:
+        direction = "up"
+
+    await update.message.reply_text(
+        f"🎲 Calculating probability...\n"
+        f"_When {ticker_a} moves {direction} {move_pct}%, does {ticker_b} follow?_\n"
+        f"_Analyzing 1 year of historical data..._",
+        parse_mode="Markdown"
+    )
+
+    result = calculate_probability(ticker_a, ticker_b, move_pct, direction, lag_days)
+    message = format_probability(result)
+    await update.message.reply_text(message, parse_mode="Markdown")
+
+
+async def probmatrix_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not context.args:
+        await update.message.reply_text(
+            "⚠️ Please provide a ticker.\n"
+            "Example: `/probmatrix BTC`",
+            parse_mode="Markdown"
+        )
+        return
+
+    ticker = context.args[0].upper()
+    move_pct = float(context.args[1]) if len(context.args) > 1 else 3.0
+
+    await update.message.reply_text(
+        f"🎲 Building probability matrix for *{ticker}*...\n"
+        f"_Analyzing all assets — takes ~30 seconds_",
+        parse_mode="Markdown"
+    )
+
+    message = get_full_probability_matrix(ticker, move_pct)
+    await update.message.reply_text(message, parse_mode="Markdown")
