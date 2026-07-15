@@ -20,7 +20,6 @@ from handlers.commands import (
 )
 from services.news_monitor import monitor_breaking_news
 from services.volume_monitor import monitor_volumes
-from services.alerts import check_alerts
 
 logging.basicConfig(
     format="%(asctime)s | %(levelname)s | %(message)s",
@@ -33,7 +32,6 @@ active_chats = set()
 async def post_init(app):
     asyncio.create_task(monitor_breaking_news(app, active_chats))
     asyncio.create_task(monitor_volumes(app, active_chats))
-    asyncio.create_task(check_alerts(app))
 
 
 def main():
