@@ -7,6 +7,8 @@ from telegram.ext import ContextTypes
 from services.fundamentals import get_fundamentals, get_valuation, get_earnings
 from services.education import get_lesson, get_glossary
 from services.signals import get_signal, scan_all_signals
+from services.predict import predict_ticker, predict_watchlist
+from services.rate_limiter import check_rate_limit
 from services.paper_trading import buy, sell, get_balance, get_positions, get_history, reset_account
 
 
@@ -49,6 +51,8 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         "_Example: /signal BTC short_\n\n"
         "/scan `<short/mid/long>` — scan all cryptos\n"
         "_Example: /scan short_\n\n"
+        "/predict `<ticker>` `<short/mid/long>` \u2014 technical + news prediction\n"
+        "_Example: /predict BTC_\n\n"
         "📰 *News*\n"
         "/news `<ticker>` — latest news\n"
         "/breaking — breaking market news\n\n"
@@ -274,6 +278,25 @@ async def scan_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     if timeframe not in ["short","mid","long"]: timeframe = "short"
     await update.message.reply_text("🔍 Scanning all cryptos...\n_~30 seconds_", parse_mode="Markdown")
     await update.message.reply_text(scan_all_signals(timeframe), parse_mode="Markdown")
+
+
+async def predict_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    allowed, msg = check_rate_limit(update.effective_chat.id)
+    if not allowed:
+        await update.message.reply_text(msg, parse_mode="Markdown")
+        return
+
+    if not context.args:
+        await update.message.reply_text("⏳ Scanning watchlist (technical + news)...", parse_mode="Markdown")
+        result = await predict_watchlist()
+        await update.message.reply_text(result, parse_mode="Markdown", disable_web_page_preview=True)
+        return
+
+    ticker = context.args[0].upper()
+    timeframe = context.args[1].lower() if len(context.args) > 1 else "short"
+    await update.message.reply_text(f"⏳ Analyzing *{ticker}*...", parse_mode="Markdown")
+    result = await predict_ticker(ticker, timeframe)
+    await update.message.reply_text(result, parse_mode="Markdown", disable_web_page_preview=True)
 
 
 async def balance_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

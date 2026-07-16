@@ -10,7 +10,7 @@ from handlers.commands import (
     watchlist_command, correlate_command, matrix_command,
     ai_command, picks_command,
     prob_command, probmatrix_command, variance_command,
-    signal_command, scan_command,
+    signal_command, scan_command, predict_command,
     balance_command, buy_command, sell_command,
     positions_command, history_command, reset_command
 )
@@ -46,6 +46,7 @@ def main():
     app.add_handler(CommandHandler("variance", variance_command))
     app.add_handler(CommandHandler("signal", signal_command))
     app.add_handler(CommandHandler("scan", scan_command))
+    app.add_handler(CommandHandler("predict", predict_command))
     app.add_handler(CommandHandler("balance", balance_command))
     app.add_handler(CommandHandler("buy", buy_command))
     app.add_handler(CommandHandler("sell", sell_command))
