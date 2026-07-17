@@ -286,17 +286,22 @@ async def predict_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         await update.message.reply_text(msg, parse_mode="Markdown")
         return
 
-    if not context.args:
-        await update.message.reply_text("⏳ Scanning watchlist (technical + news)...", parse_mode="Markdown")
-        result = await predict_watchlist()
-        await update.message.reply_text(result, parse_mode="Markdown", disable_web_page_preview=True)
-        return
+    try:
+        if not context.args:
+            await update.message.reply_text("⏳ Scanning watchlist (technical + news)...", parse_mode="Markdown")
+            result = await predict_watchlist()
+            await update.message.reply_text(result, parse_mode="Markdown", disable_web_page_preview=True)
+            return
 
-    ticker = context.args[0].upper()
-    timeframe = context.args[1].lower() if len(context.args) > 1 else "short"
-    await update.message.reply_text(f"⏳ Analyzing *{ticker}*...", parse_mode="Markdown")
-    result = await predict_ticker(ticker, timeframe)
-    await update.message.reply_text(result, parse_mode="Markdown", disable_web_page_preview=True)
+        ticker = context.args[0].upper()
+        timeframe = context.args[1].lower() if len(context.args) > 1 else "short"
+        await update.message.reply_text(f"⏳ Analyzing *{ticker}*...", parse_mode="Markdown")
+        result = await predict_ticker(ticker, timeframe)
+        await update.message.reply_text(result, parse_mode="Markdown", disable_web_page_preview=True)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        await update.message.reply_text(f"❌ Prediction error: {e}", parse_mode="Markdown")
 
 
 async def balance_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
